@@ -3,9 +3,9 @@ from PIL import Image, ImageTk
 import tkinter as tk
 from io import BytesIO
 
-# Reemplaza con tu propia API key de Last.fm
 API_KEY = 'a26545d4dc7353ac0408c2d616f0c123'
 USER = 'rattamayhorka'
+
 
 def get_current_track(api_key, user):
     url = 'http://ws.audioscrobbler.com/2.0/'
@@ -16,7 +16,7 @@ def get_current_track(api_key, user):
         'format': 'json',
         'limit': 1
     }
-
+    
     response = requests.get(url, params=params)
     data = response.json()
 
@@ -26,6 +26,7 @@ def get_current_track(api_key, user):
         album = track['album']['#text']
         title = track['name']
         album_art_url = track['image'][-1]['#text']  # Obtiene la URL de la portada (último tamaño disponible)
+        
         return title, artist, album, album_art_url
     else:
         return None, None, None, None
@@ -40,15 +41,37 @@ def display_album_cover(image_url):
         root = tk.Tk()
         root.title("Album Cover")
 
-        # Redimensionar la imagen si es necesario
-        img.thumbnail((500, 500))  # Cambia este tamaño si es necesario
+        # Obtener el tamaño de la pantalla
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+
+        # Obtener las dimensiones originales de la imagen
+        img_width, img_height = img.size
+
+        # Calcular la proporción de escala
+        scale = min(screen_width / img_width, screen_height / img_height)
+        new_width = int(img_width * scale)
+        new_height = int(img_height * scale)
+
+        # Redimensionar la imagen manteniendo la proporción
+        img = img.resize((new_width, new_height), Image.LANCZOS)
+
+        # Crear una imagen en blanco para centrar la imagen redimensionada
+        background = Image.new('RGB', (screen_width, screen_height), (0, 0, 0))
+        background.paste(img, ((screen_width - new_width) // 2, (screen_height - new_height) // 2))
 
         # Convertir la imagen a un formato compatible con tkinter
-        img_tk = ImageTk.PhotoImage(img)
+        img_tk = ImageTk.PhotoImage(background)
+
+        # Configurar la ventana en modo pantalla completa
+        root.attributes('-fullscreen', True)
 
         # Crear un widget de etiqueta y poner la imagen en él
         label = tk.Label(root, image=img_tk)
-        label.pack()
+        label.pack(fill=tk.BOTH, expand=True)
+
+        # Configurar la salida de pantalla completa con la tecla 'Esc'
+        root.bind("<Escape>", lambda e: root.quit())
 
         # Ejecutar la ventana
         root.mainloop()
@@ -57,7 +80,7 @@ def display_album_cover(image_url):
 
 def main():
     title, artist, album, album_art_url = get_current_track(API_KEY, USER)
-
+    
     if title:
         print(f'Reproduciendo ahora: {title} - {artist}')
         print(f'Álbum: {album}')
