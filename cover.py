@@ -5,7 +5,7 @@ from io import BytesIO
 
 API_KEY = 'a26545d4dc7353ac0408c2d616f0c123'
 USER = 'rattamayhorka'
-
+CHECK_INTERVAL = 30000  # Intervalo de verificación en milisegundos (30 segundos)
 
 def get_current_track(api_key, user):
     url = 'http://ws.audioscrobbler.com/2.0/'
@@ -31,15 +31,11 @@ def get_current_track(api_key, user):
     else:
         return None, None, None, None
 
-def display_album_cover(image_url):
+def display_album_cover(image_url, root):
     if image_url:
         response = requests.get(image_url)
         img_data = response.content
         img = Image.open(BytesIO(img_data))
-
-        # Crear la ventana de tkinter
-        root = tk.Tk()
-        root.title("Album Cover")
 
         # Obtener el tamaño de la pantalla
         screen_width = root.winfo_screenwidth()
@@ -63,30 +59,43 @@ def display_album_cover(image_url):
         # Convertir la imagen a un formato compatible con tkinter
         img_tk = ImageTk.PhotoImage(background)
 
-        # Configurar la ventana en modo pantalla completa
-        root.attributes('-fullscreen', True)
+        # Actualizar la imagen en el widget de la etiqueta
+        label.config(image=img_tk)
+        label.image = img_tk  # Guardar referencia de la imagen
 
-        # Crear un widget de etiqueta y poner la imagen en él
-        label = tk.Label(root, image=img_tk)
-        label.pack(fill=tk.BOTH, expand=True)
+def on_image_click(event):
+    # Cierra la aplicación cuando se hace clic en la imagen
+    root.quit()
 
-        # Configurar la salida de pantalla completa con la tecla 'Esc'
-        root.bind("<Escape>", lambda e: root.quit())
-
-        # Ejecutar la ventana
-        root.mainloop()
-    else:
-        print("No se encontró la portada del álbum.")
-
-def main():
+def update_track_info():
     title, artist, album, album_art_url = get_current_track(API_KEY, USER)
     
     if title:
         print(f'Reproduciendo ahora: {title} - {artist}')
         print(f'Álbum: {album}')
-        display_album_cover(album_art_url)
+        display_album_cover(album_art_url, root)
     else:
         print("No se pudo obtener la información de la canción.")
+    
+    # Volver a llamar a esta función después de CHECK_INTERVAL milisegundos
+    root.after(CHECK_INTERVAL, update_track_info)
 
-if __name__ == '__main__':
-    main()
+# Crear la ventana de tkinter
+root = tk.Tk()
+root.title("Album Cover")
+
+# Configurar la ventana en modo pantalla completa
+root.attributes('-fullscreen', True)
+
+# Crear un widget de etiqueta vacío
+label = tk.Label(root)
+label.pack(fill=tk.BOTH, expand=True)
+
+# Asignar la función on_image_click al evento de clic en la imagen
+label.bind("<Button-1>", on_image_click)
+
+# Llamar a la función por primera vez
+update_track_info()
+
+# Ejecutar la ventana
+root.mainloop()
