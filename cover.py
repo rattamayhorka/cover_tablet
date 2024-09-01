@@ -5,7 +5,7 @@ from io import BytesIO
 
 API_KEY = 'a26545d4dc7353ac0408c2d616f0c123'
 USER = 'rattamayhorka'
-CHECK_INTERVAL = 30000  # Intervalo de verificación en milisegundos (30 segundos)
+CHECK_INTERVAL = 5000  # Intervalo de verificación en milisegundos (30 segundos)
 
 def get_current_track(api_key, user):
     url = 'http://ws.audioscrobbler.com/2.0/'
