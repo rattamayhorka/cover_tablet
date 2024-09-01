@@ -5,7 +5,7 @@ from io import BytesIO
 
 API_KEY = 'a26545d4dc7353ac0408c2d616f0c123'
 USER = 'rattamayhorka'
-CHECK_INTERVAL = 5000  # Intervalo de verificación en milisegundos (30 segundos)
+CHECK_INTERVAL = 5000  # Intervalo de verificación en milisegundos (5 segundos)
 
 def get_current_track(api_key, user):
     url = 'http://ws.audioscrobbler.com/2.0/'
@@ -45,7 +45,7 @@ def display_album_cover(image_url, root):
         img_width, img_height = img.size
 
         # Calcular la proporción de escala
-        scale = min(screen_width / img_width, screen_height / img_height)
+        scale = min(screen_height / img_height, screen_height / img_height)
         new_width = int(img_width * scale)
         new_height = int(img_height * scale)
 
@@ -54,7 +54,7 @@ def display_album_cover(image_url, root):
 
         # Crear una imagen en blanco para centrar la imagen redimensionada
         background = Image.new('RGB', (screen_width, screen_height), (0, 0, 0))
-        background.paste(img, ((screen_width - new_width) // 2, (screen_height - new_height) // 2))
+        background.paste(img, (screen_width - new_width, (screen_height - new_height) // 2))
 
         # Convertir la imagen a un formato compatible con tkinter
         img_tk = ImageTk.PhotoImage(background)
